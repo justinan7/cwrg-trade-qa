@@ -84,6 +84,7 @@
     .tab[data-trade="Electrician"].active { background: var(--blue); border-color: var(--blue); }
     .tab[data-trade="B.C. Heating"].active { background: var(--orange); border-color: var(--orange); }
     .tab[data-trade="Client"].active { background: var(--green); border-color: var(--green); }
+    .tab[data-trade="Notes"].active { background: #8B5CF6; border-color: #8B5CF6; }
     .card-area { flex: 1; overflow: hidden; position: relative; padding: 12px 16px; }
     .card {
       background: var(--card-bg); border-radius: 16px;
@@ -220,6 +221,61 @@
     .card-content { display: block; }
     .card-content.hidden { display: none; }
     #importFile { display: none; }
+
+    /* ====== NOTES VIEW ====== */
+    .notes-view { display: none; flex-direction: column; height: 100%; }
+    .notes-view.visible { display: flex; }
+    .notes-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px; }
+    .note-item {
+      background: var(--card-bg); border-radius: 12px; padding: 14px 16px;
+      margin-bottom: 8px; cursor: pointer; transition: transform 0.1s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .note-item:active { transform: scale(0.98); }
+    .note-item-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .note-item-preview { font-size: 13px; color: var(--text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .note-item-meta { font-size: 11px; color: var(--gray-400); margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .note-item-tag {
+      display: inline-block; padding: 1px 6px; border-radius: 6px;
+      font-size: 10px; font-weight: 700; color: #fff; margin-left: 6px; vertical-align: middle;
+    }
+    .notes-empty { text-align: center; color: var(--text-secondary); padding: 40px 20px; }
+    .notes-empty-icon { font-size: 40px; margin-bottom: 8px; }
+
+    .note-editor { display: none; flex-direction: column; height: 100%; padding: 12px 16px; }
+    .note-editor.visible { display: flex; }
+    .note-editor-title {
+      width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 12px;
+      font-size: 17px; font-weight: 600; font-family: inherit;
+      background: var(--gray-50); color: var(--text); margin-bottom: 8px;
+    }
+    .note-editor-title:focus { outline: none; border-color: var(--blue); }
+    .note-editor-body {
+      flex: 1; width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 12px;
+      font-size: 16px; font-family: inherit; line-height: 1.5; resize: none;
+      background: var(--gray-50); color: var(--text);
+    }
+    .note-editor-body:focus { outline: none; border-color: var(--blue); }
+    .note-tag-row { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+    .note-tag-btn {
+      padding: 4px 10px; border-radius: 8px; border: 2px solid var(--border);
+      background: transparent; font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer;
+    }
+    .note-tag-btn.active { color: #fff; }
+    .note-tag-btn[data-tag="Electrician"].active { background: var(--blue); border-color: var(--blue); }
+    .note-tag-btn[data-tag="B.C. Heating"].active { background: var(--orange); border-color: var(--orange); }
+    .note-tag-btn[data-tag="Client"].active { background: var(--green); border-color: var(--green); }
+    .note-tag-btn[data-tag="General"].active { background: var(--gray-600); border-color: var(--gray-600); }
+    .note-footer { display: flex; gap: 8px; padding-top: 10px; }
+    .note-footer .nav-btn { flex: 1; }
+    .note-delete-btn {
+      padding: 10px 16px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      background: #FEE2E2; color: var(--red);
+    }
+    @media (prefers-color-scheme: dark) { .note-delete-btn { background: #450a0a; } }
+    .footer.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -271,12 +327,35 @@
         </div>
       </div>
     </div>
+
+    <!-- Notes list view -->
+    <div class="notes-view" id="notesView">
+      <div class="notes-list" id="notesList"></div>
+    </div>
+
+    <!-- Note editor view -->
+    <div class="note-editor" id="noteEditor">
+      <input class="note-editor-title" id="noteTitleInput" type="text" placeholder="Note title...">
+      <div class="note-tag-row" id="noteTagRow">
+        <button class="note-tag-btn" data-tag="General">General</button>
+        <button class="note-tag-btn" data-tag="Electrician">Electrician</button>
+        <button class="note-tag-btn" data-tag="B.C. Heating">B.C. Heating</button>
+        <button class="note-tag-btn" data-tag="Client">Client</button>
+      </div>
+      <textarea class="note-editor-body" id="noteBodyInput" placeholder="Write your note..."></textarea>
+      <div class="note-footer">
+        <button class="nav-btn secondary" id="noteBackBtn">Back</button>
+        <button class="note-delete-btn" id="noteDeleteBtn" style="display:none">Delete</button>
+        <button class="nav-btn" id="noteSaveBtn">Save</button>
+      </div>
+    </div>
   </div>
 
-  <div class="footer">
+  <div class="footer" id="footer">
     <button class="nav-btn secondary" id="prevBtn">Prev</button>
     <span class="nav-position" id="navPos">1 / 1</span>
     <button class="nav-btn" id="nextBtn">Next</button>
+    <button class="nav-btn" id="addNoteBtn" style="display:none;width:100%">+ New Note</button>
   </div>
 
   <div class="modal-overlay" id="menuModal">
@@ -311,6 +390,7 @@ const QUESTIONS = [
   {id:"E6",trade:"Electrician",question:"3-way requirement for interior",detail:"Do any of the 4 interior lighting zones need 3-way switching (controllable from 2 wall locations)?",why:"ZEN77 supports 3-way with a companion switch (Zooz ZEN74) or via Z-Wave association. If 3-way wiring (traveler wire) is needed, it must be run now while walls are open. Without physical 3-way wiring, we can still do virtual 3-way via HA automations + a battery remote at the second location."},
   {id:"E7",trade:"Electrician",question:"Interior lighting zone assignments",detail:"How are the 8 pendant lights + 4 wall sconces split across the 4 interior dimmer zones? Which fixtures on which circuit?",why:"Need total wattage per zone for ZEN77 sizing (max 100W LED per ZEN77) and to plan HA automations (which zone controls which area of the room)."},
   {id:"E8",trade:"Electrician",question:"Interior fixtures \u2014 dimmable?",detail:"Are all interior pendants and sconces being fitted with dimmable LED bulbs/drivers?",why:"ZEN77 is a dimmer \u2014 non-dimmable LEDs will flicker or buzz. Need to confirm all fixtures on dimmer circuits use dimmable-rated LED drivers."},
+  {id:"E9",trade:"Electrician",question:"Versant 280 \u2014 dedicated circuit?",detail:"Is a dedicated 240V/30A circuit available for the Versant 280 Press, or does a new circuit need to be run from the panel?",why:"The Versant 280 requires 240V/30A (2.8\u20133.1 kVA). If no existing circuit, electrician needs to run one during this phase. Coordinate with client on exact printer placement."},
   {id:"H1",trade:"B.C. Heating",question:"Is the outdoor unit truly inverter-driven?",detail:"Is the outdoor unit truly inverter-driven or is \u2018slim line inverter\u2019 just a model name?",why:"If truly inverter-driven, conventional thermostat wiring loses variable-speed modulation (falls back to fixed-stage operation). This affects our entire smart thermostat strategy."},
   {id:"H2",trade:"B.C. Heating",question:"Standard 5-wire thermostat compatible?",detail:"Will the system work with a standard 5-wire thermostat (R, W, Y, G, C)?",why:"Our Honeywell T6 Pro Z-Wave thermostat uses conventional 5-wire wiring. Need confirmation the HVAC system supports this without losing critical functionality."},
   {id:"H3",trade:"B.C. Heating",question:"Proprietary communication wire needed?",detail:"Does the inverter unit require any proprietary communication wire to the air handler?",why:"Proprietary wiring (e.g., communicating bus) may be required alongside or instead of standard thermostat cable. Affects what wire the HVAC installer runs."},
@@ -334,13 +414,16 @@ const TRADES = [
   {name:"All",color:"#334155"},
   {name:"Electrician",color:"#3B82F6"},
   {name:"B.C. Heating",color:"#F59E0B"},
-  {name:"Client",color:"#10B981"}
+  {name:"Client",color:"#10B981"},
+  {name:"Notes",color:"#8B5CF6"}
 ];
 
 // ====== STATE ======
-let state = { currentIndex: 0, filter: "All", answers: {} };
+let state = { currentIndex: 0, filter: "All", answers: {}, notes: [] };
 const STORAGE_KEY = "cwrg-trade-qa-v1";
 let currentQuestionId = null;
+let currentNoteIndex = -1; // -1 = new note, >=0 = editing existing
+let currentView = "questions"; // "questions" | "notes-list" | "note-editor"
 
 // ====== DOM REFS ======
 const els = {
@@ -365,7 +448,18 @@ const els = {
   totalCount: document.getElementById("totalCount"),
   menuModal: document.getElementById("menuModal"),
   modalSheet: document.getElementById("modalSheet"),
-  importFile: document.getElementById("importFile")
+  importFile: document.getElementById("importFile"),
+  // Notes
+  notesView: document.getElementById("notesView"),
+  notesList: document.getElementById("notesList"),
+  noteEditor: document.getElementById("noteEditor"),
+  noteTitleInput: document.getElementById("noteTitleInput"),
+  noteBodyInput: document.getElementById("noteBodyInput"),
+  noteTagRow: document.getElementById("noteTagRow"),
+  noteBackBtn: document.getElementById("noteBackBtn"),
+  noteDeleteBtn: document.getElementById("noteDeleteBtn"),
+  noteSaveBtn: document.getElementById("noteSaveBtn"),
+  addNoteBtn: document.getElementById("addNoteBtn")
 };
 
 // ====== PERSISTENCE ======
@@ -381,6 +475,7 @@ function loadState() {
       if (saved.answers) state.answers = saved.answers;
       if (saved.filter) state.filter = saved.filter;
       if (typeof saved.currentIndex === "number") state.currentIndex = saved.currentIndex;
+      if (Array.isArray(saved.notes)) state.notes = saved.notes;
     }
   } catch(e) {}
 }
@@ -410,13 +505,18 @@ function renderTabs() {
   while (els.tabs.firstChild) els.tabs.removeChild(els.tabs.firstChild);
 
   TRADES.forEach(function(t) {
-    var qs = t.name === "All" ? QUESTIONS : QUESTIONS.filter(function(q) { return q.trade === t.name; });
-    var answered = qs.filter(function(q) { return getAnswer(q.id).status === "answered"; }).length;
-
     var tab = document.createElement("div");
     tab.className = "tab" + (state.filter === t.name ? " active" : "");
     tab.setAttribute("data-trade", t.name);
-    tab.textContent = t.name + " " + answered + "/" + qs.length;
+
+    if (t.name === "Notes") {
+      tab.textContent = "Notes" + (state.notes.length > 0 ? " " + state.notes.length : "");
+    } else {
+      var qs = t.name === "All" ? QUESTIONS : QUESTIONS.filter(function(q) { return q.trade === t.name; });
+      var answered = qs.filter(function(q) { return getAnswer(q.id).status === "answered"; }).length;
+      tab.textContent = t.name + " " + answered + "/" + qs.length;
+    }
+
     tab.addEventListener("click", function() { setFilter(t.name); });
     els.tabs.appendChild(tab);
   });
@@ -498,10 +598,15 @@ function renderCard() {
 }
 
 function updateProgress() {
-  var qs = filtered();
-  var answered = qs.filter(function(q) { return getAnswer(q.id).status === "answered"; }).length;
-  els.answeredCount.textContent = answered;
-  els.totalCount.textContent = qs.length;
+  if (state.filter === "Notes") {
+    els.answeredCount.textContent = state.notes.length;
+    els.totalCount.textContent = "notes";
+  } else {
+    var qs = filtered();
+    var answered = qs.filter(function(q) { return getAnswer(q.id).status === "answered"; }).length;
+    els.answeredCount.textContent = answered;
+    els.totalCount.textContent = qs.length;
+  }
   renderTabs();
 }
 
@@ -511,8 +616,44 @@ function setFilter(trade) {
   state.currentIndex = 0;
   save();
   renderTabs();
-  renderCard();
-  updateProgress();
+
+  if (trade === "Notes") {
+    switchView("notes-list");
+  } else {
+    switchView("questions");
+  }
+}
+
+function switchView(view) {
+  currentView = view;
+  var footer = document.getElementById("footer");
+  // Hide all views
+  els.card.style.display = "none";
+  els.notesView.classList.remove("visible");
+  els.noteEditor.classList.remove("visible");
+  // Hide/show footer elements
+  els.prevBtn.style.display = "none";
+  els.nextBtn.style.display = "none";
+  els.navPos.style.display = "none";
+  els.addNoteBtn.style.display = "none";
+  footer.classList.remove("hidden");
+
+  if (view === "questions") {
+    els.card.style.display = "";
+    els.prevBtn.style.display = "";
+    els.nextBtn.style.display = "";
+    els.navPos.style.display = "";
+    renderCard();
+    updateProgress();
+  } else if (view === "notes-list") {
+    els.notesView.classList.add("visible");
+    els.addNoteBtn.style.display = "";
+    renderNotesList();
+    updateProgress();
+  } else if (view === "note-editor") {
+    els.noteEditor.classList.add("visible");
+    footer.classList.add("hidden");
+  }
 }
 
 function prevCard() {
@@ -629,7 +770,8 @@ document.getElementById("btnExport").addEventListener("click", function() {
     app: "cwrg-trade-qa",
     exportedAt: new Date().toISOString(),
     questionCount: QUESTIONS.length,
-    answers: state.answers
+    answers: state.answers,
+    notes: state.notes
   };
 
   var json = JSON.stringify(data, null, 2);
@@ -667,10 +809,31 @@ els.importFile.addEventListener("change", function(event) {
             state.answers[id] = imported;
           }
         });
-        save();
-        renderCard();
-        updateProgress();
       }
+      if (Array.isArray(data.notes)) {
+        // Merge notes: match by created timestamp, overwrite if imported is newer
+        data.notes.forEach(function(imported) {
+          var found = false;
+          for (var i = 0; i < state.notes.length; i++) {
+            if (state.notes[i].created === imported.created) {
+              var impMod = imported.modified || imported.created || "";
+              var locMod = state.notes[i].modified || state.notes[i].created || "";
+              if (impMod > locMod) state.notes[i] = imported;
+              found = true;
+              break;
+            }
+          }
+          if (!found) state.notes.push(imported);
+        });
+      }
+      save();
+      if (currentView === "questions") {
+        renderCard();
+      } else if (currentView === "notes-list") {
+        renderNotesList();
+      }
+      updateProgress();
+      renderTabs();
     } catch (err) {
       alert("Could not read file: " + err.message);
     }
@@ -682,23 +845,177 @@ els.importFile.addEventListener("change", function(event) {
 
 // ====== CLEAR ======
 document.getElementById("btnClear").addEventListener("click", function() {
-  if (confirm("Clear all answers? This cannot be undone.")) {
+  if (confirm("Clear all answers and notes? This cannot be undone.")) {
     state.answers = {};
+    state.notes = [];
     state.currentIndex = 0;
     save();
-    renderCard();
+    if (currentView === "questions") renderCard();
+    else if (currentView === "notes-list") renderNotesList();
     updateProgress();
+    renderTabs();
     els.menuModal.classList.remove("open");
   }
 });
 
+// ====== NOTES ======
+var TAG_COLORS = {
+  "General": "#475569",
+  "Electrician": "#3B82F6",
+  "B.C. Heating": "#F59E0B",
+  "Client": "#10B981"
+};
+
+function renderNotesList() {
+  while (els.notesList.firstChild) els.notesList.removeChild(els.notesList.firstChild);
+
+  if (state.notes.length === 0) {
+    var empty = document.createElement("div");
+    empty.className = "notes-empty";
+    var icon = document.createElement("div");
+    icon.className = "notes-empty-icon";
+    icon.textContent = "\uD83D\uDCDD";
+    var msg = document.createElement("div");
+    msg.textContent = "No notes yet. Tap + New Note to add one.";
+    empty.appendChild(icon);
+    empty.appendChild(msg);
+    els.notesList.appendChild(empty);
+    return;
+  }
+
+  // Sort notes newest first
+  var sorted = state.notes.slice().sort(function(a, b) {
+    return (b.modified || b.created || "").localeCompare(a.modified || a.created || "");
+  });
+
+  sorted.forEach(function(note, sortedIdx) {
+    // Find real index in state.notes
+    var realIndex = state.notes.indexOf(note);
+
+    var item = document.createElement("div");
+    item.className = "note-item";
+    item.addEventListener("click", function() { openNoteEditor(realIndex); });
+
+    var title = document.createElement("div");
+    title.className = "note-item-title";
+    title.textContent = note.title || "Untitled note";
+    item.appendChild(title);
+
+    if (note.body) {
+      var preview = document.createElement("div");
+      preview.className = "note-item-preview";
+      preview.textContent = note.body;
+      item.appendChild(preview);
+    }
+
+    var meta = document.createElement("div");
+    meta.className = "note-item-meta";
+    var dateStr = note.modified || note.created;
+    if (dateStr) {
+      var d = new Date(dateStr);
+      meta.textContent = d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    }
+
+    if (note.tag) {
+      var tag = document.createElement("span");
+      tag.className = "note-item-tag";
+      tag.textContent = note.tag;
+      tag.style.background = TAG_COLORS[note.tag] || TAG_COLORS["General"];
+      meta.appendChild(tag);
+    }
+
+    item.appendChild(meta);
+    els.notesList.appendChild(item);
+  });
+}
+
+function openNoteEditor(index) {
+  currentNoteIndex = index;
+  var note = index >= 0 ? state.notes[index] : { title: "", body: "", tag: "General", created: null, modified: null };
+
+  els.noteTitleInput.value = note.title || "";
+  els.noteBodyInput.value = note.body || "";
+  els.noteDeleteBtn.style.display = index >= 0 ? "" : "none";
+
+  // Set tag buttons
+  var tagBtns = els.noteTagRow.querySelectorAll(".note-tag-btn");
+  for (var i = 0; i < tagBtns.length; i++) {
+    tagBtns[i].classList.toggle("active", tagBtns[i].getAttribute("data-tag") === (note.tag || "General"));
+  }
+
+  switchView("note-editor");
+  els.noteTitleInput.focus();
+}
+
+function getSelectedTag() {
+  var active = els.noteTagRow.querySelector(".note-tag-btn.active");
+  return active ? active.getAttribute("data-tag") : "General";
+}
+
+function saveNote() {
+  var title = els.noteTitleInput.value.trim();
+  var body = els.noteBodyInput.value.trim();
+  if (!title && !body) return; // Don't save empty notes
+
+  var now = new Date().toISOString();
+  var tag = getSelectedTag();
+
+  if (currentNoteIndex >= 0) {
+    // Update existing
+    state.notes[currentNoteIndex].title = title;
+    state.notes[currentNoteIndex].body = body;
+    state.notes[currentNoteIndex].tag = tag;
+    state.notes[currentNoteIndex].modified = now;
+  } else {
+    // Create new
+    state.notes.push({ title: title, body: body, tag: tag, created: now, modified: now });
+  }
+
+  save();
+  state.filter = "Notes";
+  renderTabs();
+  switchView("notes-list");
+}
+
+function deleteNote() {
+  if (currentNoteIndex < 0) return;
+  if (!confirm("Delete this note?")) return;
+  state.notes.splice(currentNoteIndex, 1);
+  currentNoteIndex = -1;
+  save();
+  renderTabs();
+  switchView("notes-list");
+}
+
+// Note tag buttons
+els.noteTagRow.addEventListener("click", function(e) {
+  var btn = e.target.closest(".note-tag-btn");
+  if (!btn) return;
+  var tagBtns = els.noteTagRow.querySelectorAll(".note-tag-btn");
+  for (var i = 0; i < tagBtns.length; i++) tagBtns[i].classList.remove("active");
+  btn.classList.add("active");
+});
+
+// Note action buttons
+els.addNoteBtn.addEventListener("click", function() { openNoteEditor(-1); });
+els.noteBackBtn.addEventListener("click", function() {
+  state.filter = "Notes";
+  renderTabs();
+  switchView("notes-list");
+});
+els.noteSaveBtn.addEventListener("click", saveNote);
+els.noteDeleteBtn.addEventListener("click", deleteNote);
+
 // ====== INIT ======
 loadState();
-var initQs = filtered();
-if (state.currentIndex >= initQs.length) state.currentIndex = 0;
 renderTabs();
-renderCard();
-updateProgress();
+if (state.filter === "Notes") {
+  switchView("notes-list");
+} else {
+  var initQs = filtered();
+  if (state.currentIndex >= initQs.length) state.currentIndex = 0;
+  switchView("questions");
+}
 </script>
 </body>
 </html>
