@@ -137,7 +137,7 @@
     }
     .answer-wrap { position: relative; }
     .answer-textarea {
-      width: 100%; min-height: 100px; padding: 12px; padding-right: 50px;
+      width: 100%; min-height: 100px; padding: 12px;
       border: 2px solid var(--border); border-radius: 12px;
       font-size: 16px; font-family: inherit; line-height: 1.5; resize: vertical;
       background: var(--gray-50); color: var(--text); transition: border-color 0.15s;
@@ -567,69 +567,10 @@ els.answerInput.addEventListener("input", function() {
   }, 300);
 });
 
-// ====== SPEECH RECOGNITION ======
-var SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-var speechSupported = !!SpeechAPI;
-var recognition = null;
+// ====== SPEECH RECOGNITION — DISABLED (froze iOS Safari) ======
+var speechSupported = false;
 var isRecording = false;
-
-els.micBtn.addEventListener("click", function() {
-  if (!speechSupported || !currentQuestionId) return;
-
-  if (isRecording) {
-    recognition.stop();
-    return;
-  }
-
-  if (!recognition) {
-    recognition = new SpeechAPI();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-
-    recognition.addEventListener("result", function(event) {
-      var interim = "";
-      var final = "";
-      for (var i = event.resultIndex; i < event.results.length; i++) {
-        var transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += transcript;
-        } else {
-          interim += transcript;
-        }
-      }
-
-      els.micInterim.textContent = interim ? "\u201C" + interim + "\u2026\u201D" : "";
-
-      if (final && currentQuestionId) {
-        var existing = els.answerInput.value;
-        els.answerInput.value = existing ? existing + " " + final.trim() : final.trim();
-        setAnswer(currentQuestionId, { answer: els.answerInput.value });
-
-        var a = getAnswer(currentQuestionId);
-        var notes = (a.voiceNotes || []).slice();
-        notes.push({ time: new Date().toISOString(), text: final.trim() });
-        setAnswer(currentQuestionId, { voiceNotes: notes });
-      }
-    });
-
-    recognition.addEventListener("error", function(event) {
-      if (event.error !== "no-speech" && event.error !== "aborted") {
-        console.error("Speech error:", event.error);
-      }
-    });
-
-    recognition.addEventListener("end", function() {
-      isRecording = false;
-      els.micBtn.classList.remove("recording");
-      els.micInterim.textContent = "";
-    });
-  }
-
-  recognition.start();
-  isRecording = true;
-  els.micBtn.classList.add("recording");
-});
+els.micBtn.style.display = "none";
 
 // ====== SWIPE ======
 var touchStartX = 0;
